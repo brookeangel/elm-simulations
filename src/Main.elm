@@ -5,7 +5,9 @@ import Css.Colors as Colors
 import Css.Namespace exposing (namespace)
 import Html exposing (..)
 import Html.CssHelpers
+import Html.Events exposing (..)
 import Platform.Sub
+import Rocket exposing (..)
 
 
 main : Program Never Model Msg
@@ -22,20 +24,42 @@ type alias Model =
     { grid : List (List CellState) }
 
 
+type CellState
+    = Empty
+    | FullOfMoss
+
+
 init : ( Model, Cmd Msg )
 init =
-    ( { grid = List.repeat 100 (List.repeat 100 Empty) }
+    ( { grid = List.repeat 50 (List.repeat 50 Empty) }
     , Cmd.none
     )
 
 
-type CellState
-    = Empty
+type Msg
+    = GenerateMoss Int Int
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    ( model, Cmd.none )
+    case msg of
+        GenerateMoss clickedRow clickedColumn ->
+            let
+                newGrid =
+                    model.grid
+                        |> List.indexedMap
+                            (\rowIndex row ->
+                                List.indexedMap
+                                    (\columnIndex cell ->
+                                        if columnIndex == clickedColumn && rowIndex == clickedRow then
+                                            FullOfMoss
+                                        else
+                                            cell
+                                    )
+                                    row
+                            )
+            in
+            { model | grid = newGrid } => Cmd.none
 
 
 view : Model -> Html Msg
@@ -44,12 +68,15 @@ view model =
         [ attachElmCssStyles
         , div [ class [ Grid ] ]
             (model.grid
-                |> List.map
-                    (\row ->
+                |> List.indexedMap
+                    (\rowIndex row ->
                         row
-                            |> List.map
-                                (\cell ->
-                                    div [ class [ Cell, cellStateToClass cell ] ]
+                            |> List.indexedMap
+                                (\columnIndex cell ->
+                                    div
+                                        [ class [ Cell, cellStateToClass cell ]
+                                        , onClick (GenerateMoss rowIndex columnIndex)
+                                        ]
                                         []
                                 )
                             |> div [ class [ Row ] ]
@@ -58,15 +85,14 @@ view model =
         ]
 
 
-type Msg
-    = NoOp
-
-
 cellStateToClass : CellState -> CssClass
 cellStateToClass cellState =
     case cellState of
         Empty ->
             EmptyCell
+
+        FullOfMoss ->
+            MossyCell
 
 
 type CssClass
@@ -74,6 +100,7 @@ type CssClass
     | Row
     | Cell
     | EmptyCell
+    | MossyCell
 
 
 styles : Css.Stylesheet
@@ -91,6 +118,8 @@ styles =
             , width (px 20)
             , height (px 20)
             ]
+        , Css.class MossyCell
+            [ backgroundColor Colors.green ]
         ]
 
 
