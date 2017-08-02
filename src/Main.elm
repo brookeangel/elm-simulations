@@ -9,6 +9,7 @@ import Html.CssHelpers
 import Html.Events exposing (..)
 import Platform.Sub
 import Rocket exposing (..)
+import Time
 
 
 main : Program Never Model Msg
@@ -16,7 +17,7 @@ main =
     program
         { init = init
         , update = update
-        , subscriptions = \_ -> Sub.none
+        , subscriptions = subscriptions
         , view = view
         }
 
@@ -43,7 +44,10 @@ type Rule
 init : ( Model, Cmd Msg )
 init =
     { grid = Array.repeat defaultSize (Array.repeat defaultSize Empty)
-    , rules = []
+    , rules =
+        [ ChangeFromAToB Empty FullOfMoss
+        , ChangeFromAToB FullOfMoss Empty
+        ]
     }
         => Cmd.none
 
@@ -53,19 +57,25 @@ defaultSize =
     50
 
 
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Time.every Time.second (\_ -> NextFrame)
+
+
 type Msg
     = GenerateMoss Int Int
+    | NextFrame
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         GenerateMoss clickedRow clickedColumn ->
-            let
-                newGrid =
-                    updateGridAt clickedRow clickedColumn FullOfMoss model.grid
-            in
-            { model | grid = newGrid } => Cmd.none
+            { model | grid = updateGridAt clickedRow clickedColumn FullOfMoss model.grid }
+                => Cmd.none
+
+        NextFrame ->
+            { model | grid = applyRules model.rules model.grid } => Cmd.none
 
 
 updateGridAt : Int -> Int -> CellState -> Grid -> Grid
@@ -77,6 +87,25 @@ updateGridAt row column cellState grid =
                 |> withDefaultLazy (\() -> Array.repeat defaultSize Empty)
                 |> Array.set column FullOfMoss
             )
+
+
+applyRules : List Rule -> Grid -> Grid
+applyRules rules grid =
+    List.foldl applyRule grid rules
+
+
+applyRule : Rule -> Grid -> Grid
+applyRule rule grid =
+    let
+        applyToCell cell =
+            case rule of
+                ChangeFromAToB x y ->
+                    if cell == x then
+                        y
+                    else
+                        cell
+    in
+    Array.map (Array.map applyToCell) grid
 
 
 withDefaultLazy : (() -> a) -> Maybe a -> a
