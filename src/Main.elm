@@ -22,7 +22,13 @@ main =
 
 
 type alias Model =
-    { grid : Array (Array CellState) }
+    { grid : Grid
+    , rules : List Rule
+    }
+
+
+type alias Grid =
+    Array (Array CellState)
 
 
 type CellState
@@ -30,11 +36,21 @@ type CellState
     | FullOfMoss
 
 
+type Rule
+    = ChangeFromAToB CellState CellState
+
+
 init : ( Model, Cmd Msg )
 init =
-    ( { grid = Array.repeat 50 (Array.repeat 50 Empty) }
-    , Cmd.none
-    )
+    { grid = Array.repeat defaultSize (Array.repeat defaultSize Empty)
+    , rules = []
+    }
+        => Cmd.none
+
+
+defaultSize : Int
+defaultSize =
+    50
 
 
 type Msg
@@ -47,15 +63,20 @@ update msg model =
         GenerateMoss clickedRow clickedColumn ->
             let
                 newGrid =
-                    model.grid
-                        |> Array.set clickedRow
-                            (model.grid
-                                |> Array.get clickedRow
-                                |> withDefaultLazy (\() -> Array.repeat 50 Empty)
-                                |> Array.set clickedColumn FullOfMoss
-                            )
+                    updateGridAt clickedRow clickedColumn FullOfMoss model.grid
             in
             { model | grid = newGrid } => Cmd.none
+
+
+updateGridAt : Int -> Int -> CellState -> Grid -> Grid
+updateGridAt row column cellState grid =
+    grid
+        |> Array.set row
+            (grid
+                |> Array.get row
+                |> withDefaultLazy (\() -> Array.repeat defaultSize Empty)
+                |> Array.set column FullOfMoss
+            )
 
 
 withDefaultLazy : (() -> a) -> Maybe a -> a
