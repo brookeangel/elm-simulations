@@ -1,5 +1,6 @@
 module Main exposing (..)
 
+import Array exposing (Array)
 import Css exposing (..)
 import Css.Colors as Colors
 import Css.Namespace exposing (namespace)
@@ -21,7 +22,7 @@ main =
 
 
 type alias Model =
-    { grid : List (List CellState) }
+    { grid : Array (Array CellState) }
 
 
 type CellState
@@ -31,7 +32,7 @@ type CellState
 
 init : ( Model, Cmd Msg )
 init =
-    ( { grid = List.repeat 50 (List.repeat 50 Empty) }
+    ( { grid = Array.repeat 50 (Array.repeat 50 Empty) }
     , Cmd.none
     )
 
@@ -47,19 +48,25 @@ update msg model =
             let
                 newGrid =
                     model.grid
-                        |> List.indexedMap
-                            (\rowIndex row ->
-                                List.indexedMap
-                                    (\columnIndex cell ->
-                                        if columnIndex == clickedColumn && rowIndex == clickedRow then
-                                            FullOfMoss
-                                        else
-                                            cell
-                                    )
-                                    row
+                        |> Array.set clickedRow
+                            (model.grid
+                                |> Array.get clickedRow
+                                |> withDefaultLazy (\() -> Array.repeat 50 Empty)
+                                |> Array.set clickedColumn FullOfMoss
                             )
             in
             { model | grid = newGrid } => Cmd.none
+
+
+withDefaultLazy : (() -> a) -> Maybe a -> a
+withDefaultLazy default maybe =
+    -- TODO: er... does this already exist? I suspect yes...
+    case maybe of
+        Just a ->
+            a
+
+        Nothing ->
+            default ()
 
 
 view : Model -> Html Msg
@@ -68,21 +75,27 @@ view model =
         [ attachElmCssStyles
         , div [ class [ Grid ] ]
             (model.grid
-                |> List.indexedMap
-                    (\rowIndex row ->
-                        row
-                            |> List.indexedMap
-                                (\columnIndex cell ->
-                                    div
-                                        [ class [ Cell, cellStateToClass cell ]
-                                        , onClick (GenerateMoss rowIndex columnIndex)
-                                        ]
-                                        []
-                                )
-                            |> div [ class [ Row ] ]
-                    )
+                |> Array.toList
+                |> List.indexedMap viewRow
             )
         ]
+
+
+viewRow : Int -> Array CellState -> Html Msg
+viewRow rowIndex row =
+    row
+        |> Array.toList
+        |> List.indexedMap (viewCell rowIndex)
+        |> div [ class [ Row ] ]
+
+
+viewCell : Int -> Int -> CellState -> Html Msg
+viewCell rowIndex columnIndex cell =
+    div
+        [ class [ Cell, cellStateToClass cell ]
+        , onClick (GenerateMoss rowIndex columnIndex)
+        ]
+        []
 
 
 cellStateToClass : CellState -> CssClass
