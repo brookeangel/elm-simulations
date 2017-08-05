@@ -13,32 +13,20 @@ spec =
         [ describe "ChangeFromAToB"
             [ test "does not change cells that are not type A" <|
                 \() ->
-                    let
-                        grid =
-                            gridFromLists [ [ Empty ] ]
-                    in
-                    grid
+                    gridFromLists [ [ Empty ] ]
                         |> applyRules [ ChangeFromAToB FullOfMoss FullOfTrees ]
-                        |> Expect.equal grid
+                        |> Expect.equal (gridFromLists [ [ Empty ] ])
             , test "changes cells of type A to type B with one cell" <|
                 \() ->
-                    let
-                        grid =
-                            gridFromLists [ [ Empty ] ]
-                    in
-                    grid
+                    gridFromLists [ [ Empty ] ]
                         |> applyRules [ ChangeFromAToB Empty FullOfMoss ]
                         |> Expect.equal (gridFromLists [ [ FullOfMoss ] ])
             , test "applies correctly when there are multiple cells" <|
                 \() ->
-                    let
-                        grid =
-                            gridFromLists
-                                [ [ Empty, FullOfMoss ]
-                                , [ FullOfMoss, FullOfTrees ]
-                                ]
-                    in
-                    grid
+                    gridFromLists
+                        [ [ Empty, FullOfMoss ]
+                        , [ FullOfMoss, FullOfTrees ]
+                        ]
                         |> applyRules [ ChangeFromAToB Empty FullOfTrees ]
                         |> Expect.equal
                             (gridFromLists
@@ -48,8 +36,24 @@ spec =
                             )
             ]
         , describe "Sequences of rules"
-            [ todo "Rules are applied based on the initial grid"
-            , todo "In rules [A, B], rule B is applied second"
+            [ test "Once a rule has been applied to a cell, stop changing it" <|
+                \() ->
+                    gridFromLists [ [ Empty ] ]
+                        |> applyRules
+                            [ ChangeFromAToB Empty FullOfTrees
+                            , ChangeFromAToB FullOfTrees FullOfMoss
+                            ]
+                        |> Expect.equal
+                            (gridFromLists [ [ FullOfTrees ] ])
+            , test "Works when the first rule does not apply" <|
+                \() ->
+                    gridFromLists [ [ Empty ] ]
+                        |> applyRules
+                            [ ChangeFromAToB FullOfTrees FullOfMoss
+                            , ChangeFromAToB Empty FullOfTrees
+                            , ChangeFromAToB Empty FullOfMoss
+                            ]
+                        |> Expect.equal (gridFromLists [ [ FullOfTrees ] ])
             ]
         ]
 
@@ -57,5 +61,6 @@ spec =
 gridFromLists : List (List CellState) -> Grid
 gridFromLists cells =
     cells
+        |> List.map (List.map (Cell False))
         |> List.map Array.fromList
         |> Array.fromList

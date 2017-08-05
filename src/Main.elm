@@ -6,7 +6,6 @@ import Css.Colors as Colors
 import Css.Namespace exposing (namespace)
 import Html exposing (..)
 import Html.CssHelpers
-import Html.Events exposing (..)
 import Model exposing (..)
 import Platform.Sub
 import Rocket exposing (..)
@@ -27,10 +26,11 @@ main =
 
 init : ( Model, Cmd Msg )
 init =
-    { grid = Array.repeat defaultSize (Array.repeat defaultSize Empty)
+    { grid = initGrid
     , rules =
         [ ChangeFromAToB Empty FullOfMoss
-        , ChangeFromAToB FullOfMoss Empty
+        , ChangeFromAToB FullOfMoss FullOfTrees
+        , ChangeFromAToB FullOfTrees Empty
         ]
     }
         => Cmd.none
@@ -53,7 +53,7 @@ view model =
         ]
 
 
-viewRow : Int -> Array CellState -> Html Msg
+viewRow : Int -> Array Cell -> Html Msg
 viewRow rowIndex row =
     row
         |> Array.toList
@@ -61,13 +61,9 @@ viewRow rowIndex row =
         |> div [ class [ Row ] ]
 
 
-viewCell : Int -> Int -> CellState -> Html Msg
+viewCell : Int -> Int -> Cell -> Html Msg
 viewCell rowIndex columnIndex cell =
-    div
-        [ class [ Cell, cellStateToClass cell ]
-        , onClick (GenerateMoss rowIndex columnIndex)
-        ]
-        []
+    div [ class [ CellClass, cellStateToClass cell.state ] ] []
 
 
 cellStateToClass : CellState -> CssClass
@@ -79,13 +75,17 @@ cellStateToClass cellState =
         FullOfMoss ->
             MossyCell
 
+        FullOfTrees ->
+            TreeCell
+
 
 type CssClass
     = Grid
     | Row
-    | Cell
+    | CellClass
     | EmptyCell
     | MossyCell
+    | TreeCell
 
 
 styles : Css.Stylesheet
@@ -98,13 +98,16 @@ styles =
         , Css.class Row
             [ displayFlex
             ]
-        , Css.class Cell
+        , Css.class CellClass
             [ border3 (px 1) solid Colors.blue
             , width (px 20)
             , height (px 20)
             ]
         , Css.class MossyCell
             [ backgroundColor Colors.green ]
+        , Css.class TreeCell
+            [ backgroundColor Colors.olive
+            ]
         ]
 
 
