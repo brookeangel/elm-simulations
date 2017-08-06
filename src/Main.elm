@@ -4,11 +4,13 @@ import Array exposing (Array)
 import Css exposing (..)
 import Css.Colors as Colors
 import Css.Namespace exposing (namespace)
+import EveryDict exposing (EveryDict)
 import Html exposing (..)
 import Html.CssHelpers
 import Model exposing (..)
 import Platform.Sub
 import Rocket exposing (..)
+import Rules exposing (..)
 import Time
 import Types exposing (..)
 import Update exposing (..)
@@ -28,10 +30,11 @@ init : ( Model, Cmd Msg )
 init =
     { grid = initGrid
     , rules =
-        [ ChangeFromAToB Empty FullOfMoss
-        , ChangeFromAToB FullOfMoss FullOfTrees
-        , ChangeFromAToB FullOfTrees Empty
+        [ Simple <| ChangeFromAToB Empty FullOfMoss
+        , Simple <| ChangeFromAToB FullOfMoss FullOfTrees
+        , Simple <| ChangeFromAToB FullOfTrees Empty
         ]
+    , probabilityGrid = EveryDict.empty
     }
         => Cmd.none
 

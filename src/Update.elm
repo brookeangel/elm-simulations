@@ -1,8 +1,9 @@
 module Update exposing (Msg(..), update)
 
-import ApplyRules exposing (..)
 import Model exposing (..)
 import Rocket exposing (..)
+import Rules exposing (..)
+import Types exposing (..)
 
 
 type Msg

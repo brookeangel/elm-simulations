@@ -1,8 +1,8 @@
 module Spec exposing (..)
 
-import ApplyRules exposing (applyRules)
 import Array
 import Expect
+import Rules exposing (..)
 import Test exposing (..)
 import Types exposing (..)
 
@@ -14,12 +14,12 @@ spec =
             [ test "does not change cells that are not type A" <|
                 \() ->
                     gridFromLists [ [ Empty ] ]
-                        |> applyRules [ ChangeFromAToB FullOfMoss FullOfTrees ]
+                        |> applyRules [ Simple <| ChangeFromAToB FullOfMoss FullOfTrees ]
                         |> Expect.equal (gridFromLists [ [ Empty ] ])
             , test "changes cells of type A to type B with one cell" <|
                 \() ->
                     gridFromLists [ [ Empty ] ]
-                        |> applyRules [ ChangeFromAToB Empty FullOfMoss ]
+                        |> applyRules [ Simple <| ChangeFromAToB Empty FullOfMoss ]
                         |> Expect.equal (gridFromLists [ [ FullOfMoss ] ])
             , test "applies correctly when there are multiple cells" <|
                 \() ->
@@ -27,7 +27,7 @@ spec =
                         [ [ Empty, FullOfMoss ]
                         , [ FullOfMoss, FullOfTrees ]
                         ]
-                        |> applyRules [ ChangeFromAToB Empty FullOfTrees ]
+                        |> applyRules [ Simple <| ChangeFromAToB Empty FullOfTrees ]
                         |> Expect.equal
                             (gridFromLists
                                 [ [ FullOfTrees, FullOfMoss ]
@@ -35,13 +35,18 @@ spec =
                                 ]
                             )
             ]
+        , describe "Complex rules"
+            [ todo "if the probability is 1, apply the rule"
+            , todo "if the probability is 0, dont apply the rule"
+            , todo "apply the rule if the generated number is less than the probability"
+            ]
         , describe "Sequences of rules"
             [ test "Once a rule has been applied to a cell, stop changing it" <|
                 \() ->
                     gridFromLists [ [ Empty ] ]
                         |> applyRules
-                            [ ChangeFromAToB Empty FullOfTrees
-                            , ChangeFromAToB FullOfTrees FullOfMoss
+                            [ Simple <| ChangeFromAToB Empty FullOfTrees
+                            , Simple <| ChangeFromAToB FullOfTrees FullOfMoss
                             ]
                         |> Expect.equal
                             (gridFromLists [ [ FullOfTrees ] ])
@@ -49,9 +54,9 @@ spec =
                 \() ->
                     gridFromLists [ [ Empty ] ]
                         |> applyRules
-                            [ ChangeFromAToB FullOfTrees FullOfMoss
-                            , ChangeFromAToB Empty FullOfTrees
-                            , ChangeFromAToB Empty FullOfMoss
+                            [ Simple <| ChangeFromAToB FullOfTrees FullOfMoss
+                            , Simple <| ChangeFromAToB Empty FullOfTrees
+                            , Simple <| ChangeFromAToB Empty FullOfMoss
                             ]
                         |> Expect.equal (gridFromLists [ [ FullOfTrees ] ])
             ]

@@ -1,4 +1,11 @@
-module Types exposing (Cell, CellState(..), Grid, Rule(..), initGrid)
+module Types
+    exposing
+        ( Cell
+        , CellState(..)
+        , Grid
+        , defaultSize
+        , initGrid
+        )
 
 import Array exposing (Array)
 
@@ -34,7 +41,3 @@ type CellState
     = Empty
     | FullOfMoss
     | FullOfTrees
-
-
-type Rule
-    = ChangeFromAToB CellState CellState
