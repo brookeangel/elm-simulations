@@ -1,6 +1,6 @@
 module Model exposing (..)
 
-import EveryDict exposing (EveryDict)
+import ProbabilityGrid exposing (ProbabilityRuleGrids)
 import Rules exposing (..)
 import Types exposing (Grid)
 
@@ -8,5 +8,5 @@ import Types exposing (Grid)
 type alias Model =
     { grid : Grid
     , rules : List Rule
-    , probabilityGrid : EveryDict Rule ProbabilityGrid
+    , probabilityGrid : ProbabilityRuleGrids Rule
     }

@@ -3,6 +3,7 @@ module Rules exposing (..)
 import Array exposing (Array)
 import EveryDict exposing (EveryDict)
 import List.Extra
+import ProbabilityGrid exposing (ProbabilityRuleGrids)
 import Random exposing (Generator)
 import Types exposing (..)
 
@@ -35,17 +36,13 @@ type SimpleRule
     = ChangeFromAToB CellState CellState
 
 
-applyRules : EveryDict Rule ProbabilityGrid -> List Rule -> Grid -> Grid
+applyRules : ProbabilityRuleGrids Rule -> List Rule -> Grid -> Grid
 applyRules probabilityGrids rules grid =
     List.foldl (applyRule probabilityGrids) grid rules
         |> resetUpdateStatus
 
 
-
--- TODO: make EveryDict Rule ProbabilityGrid a type alias
-
-
-applyRule : EveryDict Rule ProbabilityGrid -> Rule -> Grid -> Grid
+applyRule : ProbabilityRuleGrids Rule -> Rule -> Grid -> Grid
 applyRule probabilityGrids rule grid =
     Array.indexedMap
         (\rowIndex row ->
@@ -58,10 +55,10 @@ applyRule probabilityGrids rule grid =
         grid
 
 
-applyToCell : Rule -> EveryDict Rule ProbabilityGrid -> Int -> Int -> Cell -> Cell
+applyToCell : Rule -> ProbabilityRuleGrids Rule -> Int -> Int -> Cell -> Cell
 applyToCell rule probabilityGrids column row cell =
     -- TODO: i'm sorry for this horrendous code I'm so sorry
-    -- This should all happen in the generator module.
+    -- Maybe This should all happen in the generator module.
     if cell.updated then
         cell
     else
@@ -99,7 +96,7 @@ applySimpleRule rule cell =
 type alias ApplyRuleConfig =
     { rule : Rule
     , probability : Float
-    , probabilityGrids : EveryDict Rule ProbabilityGrid
+    , probabilityGrids : ProbabilityRuleGrids Rule
     , row : Int
     , column : Int
     }
@@ -118,42 +115,3 @@ applyProbabilityRule config =
 resetUpdateStatus : Grid -> Grid
 resetUpdateStatus grid =
     Array.map (Array.map (\cell -> { cell | updated = False })) grid
-
-
-type alias ProbabilityGrid =
-    Array (Array Float)
-
-
-initProbablilityGrid : ProbabilityGrid
-initProbablilityGrid =
-    Array.repeat defaultSize (Array.repeat defaultSize 0)
-
-
-probabilityGridGeneratorForRules : List Rule -> Generator (EveryDict Rule ProbabilityGrid)
-probabilityGridGeneratorForRules rules =
-    -- TODO: this is the worst thing I've ever seen, refactor me. Sorry.
-    -- also, does this even belong here? I don't think so.
-    Random.list (List.length rules) probabilityGridGenerator
-        |> Random.map
-            (\probabilityGridList ->
-                List.Extra.indexedFoldl
-                    (\index rule dict ->
-                        EveryDict.insert rule
-                            (List.Extra.getAt index probabilityGridList
-                                |> Maybe.withDefault initProbablilityGrid
-                            )
-                            dict
-                    )
-                    EveryDict.empty
-                    rules
-            )
-
-
-probabilityGridGenerator : Generator ProbabilityGrid
-probabilityGridGenerator =
-    -- TODO: this is the second worst thing I've ever seen, refactor me. Sorry.
-    Random.list defaultSize
-        (Random.list defaultSize (Random.float 0 1)
-            |> Random.map Array.fromList
-        )
-        |> Random.map Array.fromList

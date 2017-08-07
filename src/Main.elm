@@ -33,8 +33,8 @@ init =
         [ -- Simple <| ChangeFromAToB Empty FullOfMoss
           -- , Simple <| ChangeFromAToB FullOfMoss FullOfTrees
           Simple <| ChangeFromAToB FullOfTrees Empty
-        , Probability 0.5 (ChangeFromAToB Empty FullOfMoss)
-        , Probability 0.2 (ChangeFromAToB FullOfMoss FullOfTrees)
+        , Probability 0.05 (ChangeFromAToB Empty FullOfMoss)
+        , Probability 0.5 (ChangeFromAToB FullOfMoss FullOfTrees)
         ]
     , probabilityGrid = EveryDict.empty
     }

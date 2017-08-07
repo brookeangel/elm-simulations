@@ -35,10 +35,9 @@ spec =
                                 ]
                             )
             ]
-        , describe "Complex rules"
-            [ todo "if the probability is 1, apply the rule"
-            , todo "if the probability is 0, dont apply the rule"
-            , todo "apply the rule if the generated number is less than the probability"
+        , describe "ProbabilityGrid"
+            [ todo "only creates grids for probability rules"
+            , todo "correctly determines whether to apply rules"
             ]
         , describe "Sequences of rules"
             [ test "Once a rule has been applied to a cell, stop changing it" <|

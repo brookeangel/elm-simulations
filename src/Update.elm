@@ -1,7 +1,7 @@
 module Update exposing (Msg(..), update)
 
-import EveryDict exposing (EveryDict)
 import Model exposing (..)
+import ProbabilityGrid exposing (..)
 import Random
 import Rocket exposing (..)
 import Rules exposing (..)
@@ -9,7 +9,7 @@ import Rules exposing (..)
 
 type Msg
     = NextFrame
-    | SetProbabilityGrid (EveryDict Rule ProbabilityGrid)
+    | SetProbabilityGrid (ProbabilityRuleGrids Rule)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
