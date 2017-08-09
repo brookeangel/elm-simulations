@@ -4,11 +4,11 @@ import Array exposing (Array)
 import Css exposing (..)
 import Css.Colors as Colors
 import Css.Namespace exposing (namespace)
-import EveryDict exposing (EveryDict)
 import Html exposing (..)
 import Html.CssHelpers
 import Model exposing (..)
 import Platform.Sub
+import Random
 import Rocket exposing (..)
 import Rules exposing (..)
 import Time
@@ -34,7 +34,7 @@ init =
         , IfCellIs FullOfMoss (Probability 0.5 (ChangeToB FullOfTrees))
         , IfCellIs FullOfTrees (ChangeToB Empty)
         ]
-    , probabilityGrid = EveryDict.empty
+    , seed = Random.initialSeed 2810 -- TODO
     }
         => Cmd.none
 

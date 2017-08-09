@@ -1,8 +1,7 @@
 module Rules exposing (..)
 
 import Array exposing (Array)
-import EveryDict exposing (EveryDict)
-import ProbabilityGrid exposing (ProbabilityRuleGrids)
+import Random exposing (Seed)
 import Types exposing (..)
 
 
@@ -31,75 +30,77 @@ type Rule
     | IfCellIs CellState Rule
 
 
-applyRules : ProbabilityRuleGrids Rule -> List Rule -> Grid -> Grid
-applyRules probabilityGrids rules grid =
-    List.foldl (applyRule probabilityGrids) grid rules
-        |> resetUpdateStatus
+applyRules : Seed -> List Rule -> Grid -> ( Grid, Seed )
+applyRules seed rules grid =
+    List.foldl applyRule ( grid, seed ) rules
+        |> Tuple.mapFirst resetUpdateStatus
 
 
-applyRule : ProbabilityRuleGrids Rule -> Rule -> Grid -> Grid
-applyRule probabilityGrids rule grid =
-    Array.indexedMap
-        (\rowIndex row ->
-            Array.indexedMap
-                (\colIndex cell ->
-                    applyToCell rule probabilityGrids rowIndex colIndex cell
-                )
-                row
+applyRule : Rule -> ( Grid, Seed ) -> ( Grid, Seed )
+applyRule rule ( grid, seed ) =
+    Array.foldl
+        (\row ( grid, seed ) ->
+            let
+                ( newRow, newSeed ) =
+                    Array.foldl
+                        (\cell ( row, initialSeed ) ->
+                            let
+                                ( newCell, newSeed ) =
+                                    applyToCell initialSeed rule cell
+                            in
+                            ( Array.push newCell row, newSeed )
+                        )
+                        ( Array.empty, seed )
+                        row
+            in
+            ( Array.push newRow grid, newSeed )
         )
+        ( Array.empty, seed )
         grid
 
 
-applyToCell : Rule -> ProbabilityRuleGrids Rule -> Int -> Int -> Cell -> Cell
-applyToCell rule probabilityGrids row column cell =
+applyToCell : Seed -> Rule -> Cell -> ( Cell, Seed )
+applyToCell seed rule cell =
     if cell.updated then
-        cell
+        ( cell, seed )
     else
         case rule of
             ChangeToB b ->
-                { cell | state = b, updated = True }
+                ( { cell | state = b, updated = True }, seed )
 
             Probability probability nestedRule ->
-                -- Maybe this should all happen in the generator module.
                 let
-                    shouldApply =
+                    ( shouldApply, newSeed ) =
                         applyProbabilityRule
                             { rule = rule
                             , probability = probability
-                            , probabilityGrids = probabilityGrids
-                            , row = row
-                            , column = column
+                            , seed = seed
                             }
                 in
                 if shouldApply then
-                    applyToCell nestedRule probabilityGrids row column cell
+                    applyToCell newSeed nestedRule cell
                 else
-                    cell
+                    ( cell, newSeed )
 
             IfCellIs cellState nestedRule ->
                 if cell.state == cellState then
-                    applyToCell nestedRule probabilityGrids row column cell
+                    applyToCell seed nestedRule cell
                 else
-                    cell
+                    ( cell, seed )
 
 
 type alias ApplyProbabilityRuleConfig =
     { rule : Rule
     , probability : Float
-    , probabilityGrids : ProbabilityRuleGrids Rule
-    , row : Int
-    , column : Int
+    , seed : Seed
     }
 
 
-applyProbabilityRule : ApplyProbabilityRuleConfig -> Bool
+applyProbabilityRule : ApplyProbabilityRuleConfig -> ( Bool, Seed )
 applyProbabilityRule config =
-    config.probabilityGrids
-        |> EveryDict.get config.rule
-        |> Maybe.andThen (Array.get config.row)
-        |> Maybe.andThen (Array.get config.column)
-        |> Maybe.map (\roll -> roll <= config.probability)
-        |> Maybe.withDefault False
+    config.seed
+        |> Random.step (Random.float 0 1)
+        |> Tuple.mapFirst (\roll -> roll <= config.probability)
 
 
 resetUpdateStatus : Grid -> Grid

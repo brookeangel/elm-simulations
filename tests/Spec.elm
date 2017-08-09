@@ -1,8 +1,9 @@
 module Spec exposing (..)
 
 import Array
-import EveryDict
 import Expect
+import Fuzz
+import Random exposing (Seed)
 import Rules exposing (..)
 import Test exposing (..)
 import Types exposing (..)
@@ -15,7 +16,8 @@ spec =
             [ test "changes cells to type B with one cell" <|
                 \() ->
                     gridFromLists [ [ Empty ] ]
-                        |> applyRules EveryDict.empty [ ChangeToB FullOfMoss ]
+                        |> applyRules seed [ ChangeToB FullOfMoss ]
+                        |> Tuple.first
                         |> Expect.equal (gridFromLists [ [ FullOfMoss ] ])
             , test "applies correctly when there are multiple cells" <|
                 \() ->
@@ -23,7 +25,8 @@ spec =
                         [ [ Empty, FullOfMoss ]
                         , [ FullOfMoss, FullOfTrees ]
                         ]
-                        |> applyRules EveryDict.empty [ ChangeToB FullOfTrees ]
+                        |> applyRules seed [ ChangeToB FullOfTrees ]
+                        |> Tuple.first
                         |> Expect.equal
                             (gridFromLists
                                 [ [ FullOfTrees, FullOfTrees ]
@@ -32,7 +35,15 @@ spec =
                             )
             ]
         , describe "ProbabilityGrid"
-            [ todo "correctly determines whether to apply rules"
+            [ fuzz Fuzz.float "updates the seed" <|
+                \roll ->
+                    gridFromLists
+                        [ [ Empty, FullOfMoss ]
+                        , [ FullOfMoss, FullOfTrees ]
+                        ]
+                        |> applyRules seed [ Probability roll (ChangeToB FullOfTrees) ]
+                        |> Tuple.second
+                        |> Expect.notEqual seed
             ]
         , describe "IfCellIs"
             [ test "applies the rule when the cell matches the conditional" <|
@@ -41,7 +52,8 @@ spec =
                         [ [ Empty, FullOfMoss ]
                         , [ FullOfMoss, FullOfTrees ]
                         ]
-                        |> applyRules EveryDict.empty [ IfCellIs FullOfMoss (ChangeToB FullOfTrees) ]
+                        |> applyRules seed [ IfCellIs FullOfMoss (ChangeToB FullOfTrees) ]
+                        |> Tuple.first
                         |> Expect.equal
                             (gridFromLists
                                 [ [ Empty, FullOfTrees ]
@@ -53,22 +65,28 @@ spec =
             [ test "Once a rule has been applied to a cell, stop changing it" <|
                 \() ->
                     gridFromLists [ [ Empty ] ]
-                        |> applyRules EveryDict.empty
+                        |> applyRules seed
                             [ ChangeToB FullOfTrees
                             , ChangeToB FullOfMoss
                             ]
-                        |> Expect.equal
-                            (gridFromLists [ [ FullOfTrees ] ])
+                        |> Tuple.first
+                        |> Expect.equal (gridFromLists [ [ FullOfTrees ] ])
             , test "Works when the first rule does not apply" <|
                 \() ->
                     gridFromLists [ [ Empty ] ]
-                        |> applyRules EveryDict.empty
+                        |> applyRules seed
                             [ IfCellIs FullOfMoss (ChangeToB FullOfTrees)
                             , ChangeToB FullOfTrees
                             ]
+                        |> Tuple.first
                         |> Expect.equal (gridFromLists [ [ FullOfTrees ] ])
             ]
         ]
+
+
+seed : Seed
+seed =
+    Random.initialSeed 424242
 
 
 gridFromLists : List (List CellState) -> Grid

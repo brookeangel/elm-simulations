@@ -1,15 +1,14 @@
 module Update exposing (Msg(..), update)
 
 import Model exposing (..)
-import ProbabilityGrid exposing (..)
-import Random
+import Random exposing (Seed)
 import Rocket exposing (..)
 import Rules exposing (..)
 
 
 type Msg
     = NextFrame
-    | SetProbabilityGrid (ProbabilityRuleGrids Rule)
+    | SetSeed Seed
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -17,10 +16,10 @@ update msg model =
     case msg of
         NextFrame ->
             let
-                probabilityGridCmd =
-                    Random.generate SetProbabilityGrid (probabilityGridGeneratorForRules model.rules)
+                ( grid, seed ) =
+                    applyRules model.seed model.rules model.grid
             in
-            { model | grid = applyRules model.probabilityGrid model.rules model.grid } => probabilityGridCmd
+            { model | grid = grid, seed = seed } => Cmd.none
 
-        SetProbabilityGrid probabilityGrid ->
-            { model | probabilityGrid = probabilityGrid } => Cmd.none
+        SetSeed seed ->
+            { model | seed = seed } => Cmd.none
