@@ -30,11 +30,9 @@ init : ( Model, Cmd Msg )
 init =
     { grid = initGrid
     , rules =
-        [ -- Simple <| ChangeFromAToB Empty FullOfMoss
-          -- , Simple <| ChangeFromAToB FullOfMoss FullOfTrees
-          Simple <| ChangeFromAToB FullOfTrees Empty
-        , Probability 0.05 (ChangeFromAToB Empty FullOfMoss)
-        , Probability 0.5 (ChangeFromAToB FullOfMoss FullOfTrees)
+        [ IfCellIs Empty (Probability 0.05 (ChangeToB FullOfMoss))
+        , IfCellIs FullOfMoss (Probability 0.5 (ChangeToB FullOfTrees))
+        , IfCellIs FullOfTrees (ChangeToB Empty)
         ]
     , probabilityGrid = EveryDict.empty
     }

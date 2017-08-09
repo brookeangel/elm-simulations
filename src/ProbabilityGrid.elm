@@ -21,6 +21,7 @@ type alias ProbabilityGrid =
 
 probabilityGridGeneratorForRules : List a -> Generator (ProbabilityRuleGrids a)
 probabilityGridGeneratorForRules rules =
+    -- TODO: tbh we should probably just do this with a seed.
     Random.list (List.length rules) probabilityGridGenerator
         |> Random.map (\probabilityGridList -> List.Extra.zip rules probabilityGridList)
         |> Random.map EveryDict.fromList

@@ -2,9 +2,7 @@ module Rules exposing (..)
 
 import Array exposing (Array)
 import EveryDict exposing (EveryDict)
-import List.Extra
 import ProbabilityGrid exposing (ProbabilityRuleGrids)
-import Random exposing (Generator)
 import Types exposing (..)
 
 
@@ -28,12 +26,9 @@ import Types exposing (..)
 
 -}
 type Rule
-    = Simple SimpleRule
-    | Probability Float SimpleRule
-
-
-type SimpleRule
-    = ChangeFromAToB CellState CellState
+    = ChangeToB CellState
+    | Probability Float Rule
+    | IfCellIs CellState Rule
 
 
 applyRules : ProbabilityRuleGrids Rule -> List Rule -> Grid -> Grid
@@ -48,7 +43,7 @@ applyRule probabilityGrids rule grid =
         (\rowIndex row ->
             Array.indexedMap
                 (\colIndex cell ->
-                    applyToCell rule probabilityGrids colIndex rowIndex cell
+                    applyToCell rule probabilityGrids rowIndex colIndex cell
                 )
                 row
         )
@@ -56,17 +51,16 @@ applyRule probabilityGrids rule grid =
 
 
 applyToCell : Rule -> ProbabilityRuleGrids Rule -> Int -> Int -> Cell -> Cell
-applyToCell rule probabilityGrids column row cell =
-    -- TODO: i'm sorry for this horrendous code I'm so sorry
-    -- Maybe This should all happen in the generator module.
+applyToCell rule probabilityGrids row column cell =
     if cell.updated then
         cell
     else
         case rule of
-            Simple simpleRule ->
-                applySimpleRule simpleRule cell
+            ChangeToB b ->
+                { cell | state = b, updated = True }
 
-            Probability probability simpleRule ->
+            Probability probability nestedRule ->
+                -- Maybe this should all happen in the generator module.
                 let
                     shouldApply =
                         applyProbabilityRule
@@ -78,22 +72,18 @@ applyToCell rule probabilityGrids column row cell =
                             }
                 in
                 if shouldApply then
-                    applySimpleRule simpleRule cell
+                    applyToCell nestedRule probabilityGrids row column cell
+                else
+                    cell
+
+            IfCellIs cellState nestedRule ->
+                if cell.state == cellState then
+                    applyToCell nestedRule probabilityGrids row column cell
                 else
                     cell
 
 
-applySimpleRule : SimpleRule -> Cell -> Cell
-applySimpleRule rule cell =
-    case rule of
-        ChangeFromAToB x y ->
-            if cell.state == x then
-                { cell | state = y, updated = True }
-            else
-                cell
-
-
-type alias ApplyRuleConfig =
+type alias ApplyProbabilityRuleConfig =
     { rule : Rule
     , probability : Float
     , probabilityGrids : ProbabilityRuleGrids Rule
@@ -102,7 +92,7 @@ type alias ApplyRuleConfig =
     }
 
 
-applyProbabilityRule : ApplyRuleConfig -> Bool
+applyProbabilityRule : ApplyProbabilityRuleConfig -> Bool
 applyProbabilityRule config =
     config.probabilityGrids
         |> EveryDict.get config.rule
