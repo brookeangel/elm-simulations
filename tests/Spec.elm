@@ -34,7 +34,7 @@ spec =
                                 ]
                             )
             ]
-        , describe "ProbabilityGrid"
+        , describe "Probability"
             [ fuzz Fuzz.float "updates the seed" <|
                 \roll ->
                     gridFromLists
@@ -44,6 +44,7 @@ spec =
                         |> applyRules seed [ Probability roll (ChangeToB FullOfTrees) ]
                         |> Tuple.second
                         |> Expect.notEqual seed
+            , todo "applies when the probability dictates"
             ]
         , describe "IfCellIs"
             [ test "applies the rule when the cell matches the conditional" <|
@@ -58,6 +59,31 @@ spec =
                             (gridFromLists
                                 [ [ Empty, FullOfTrees ]
                                 , [ FullOfTrees, FullOfTrees ]
+                                ]
+                            )
+            ]
+        , describe "IfXNeighborsAre"
+            [ test "does not apply the rule when less than x neighbors match" <|
+                \() ->
+                    gridFromLists
+                        [ [ Empty, Empty, Empty ]
+                        , [ Empty, FullOfTrees, Empty ]
+                        , [ FullOfMoss, FullOfMoss, Empty ]
+                        ]
+                        |> applyRules seed
+                            [ IfCellIs FullOfTrees
+                                (IfXNeighborsAre
+                                    3
+                                    FullOfMoss
+                                    (ChangeToB FullOfMoss)
+                                )
+                            ]
+                        |> Tuple.first
+                        |> Expect.equal
+                            (gridFromLists
+                                [ [ Empty, Empty, Empty ]
+                                , [ Empty, FullOfTrees, Empty ]
+                                , [ FullOfMoss, FullOfMoss, Empty ]
                                 ]
                             )
             ]

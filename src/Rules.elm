@@ -28,6 +28,7 @@ type Rule
     = ChangeToB CellState
     | Probability Float Rule
     | IfCellIs CellState Rule
+    | IfXNeighborsAre Int CellState Rule
 
 
 applyRules : Seed -> List Rule -> Grid -> ( Grid, Seed )
@@ -38,6 +39,7 @@ applyRules seed rules grid =
 
 applyRule : Rule -> ( Grid, Seed ) -> ( Grid, Seed )
 applyRule rule ( grid, seed ) =
+    -- TODO: clean me up
     Array.foldl
         (\row ( grid, seed ) ->
             let
@@ -87,6 +89,9 @@ applyToCell seed rule cell =
                     applyToCell seed nestedRule cell
                 else
                     ( cell, seed )
+
+            IfXNeighborsAre x cellState nestedRule ->
+                ( cell, seed )
 
 
 type alias ApplyProbabilityRuleConfig =
