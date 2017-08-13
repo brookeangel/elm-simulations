@@ -41,3 +41,4 @@ type CellState
     = Empty
     | FullOfMoss
     | FullOfTrees
+    | OnFire

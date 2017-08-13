@@ -16,6 +16,18 @@ import Types exposing (..)
 import Update exposing (..)
 
 
+{-|
+
+    TODO:
+    - currently, rules apply in the order of priority & always look at the "new" grid - should they do this? Maybe ok.
+    - Add rule: If cell is not...
+    - Add interface for adding rules
+    - Add interface for adding items
+    - Make actual design
+    - Test probability rule
+    - Make embeddable
+
+-}
 main : Program Never Model Msg
 main =
     program
@@ -30,9 +42,12 @@ init : ( Model, Cmd Msg )
 init =
     { grid = initGrid
     , rules =
-        [ IfCellIs Empty (Probability 0.01 (ChangeToB FullOfMoss))
+        [ IfCellIs FullOfTrees (IfXNeighborsAre 1 OnFire (ChangeToB OnFire))
+        , IfCellIs FullOfMoss (IfXNeighborsAre 1 OnFire (ChangeToB OnFire))
+        , IfCellIs Empty (Probability 0.05 (ChangeToB FullOfMoss))
         , IfXNeighborsAre 3 FullOfMoss (ChangeToB FullOfTrees)
-        , IfCellIs FullOfTrees (Probability 0.05 (ChangeToB Empty))
+        , Probability 0.001 (ChangeToB OnFire)
+        , IfCellIs OnFire (ChangeToB Empty)
         ]
     , seed = Random.initialSeed 2810 -- TODO
     }
@@ -41,7 +56,7 @@ init =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Time.every Time.second (\_ -> NextFrame)
+    Time.every (100 * Time.millisecond) (\_ -> NextFrame)
 
 
 view : Model -> Html Msg
@@ -81,6 +96,9 @@ cellStateToClass cellState =
         FullOfTrees ->
             TreeCell
 
+        OnFire ->
+            FireCell
+
 
 type CssClass
     = Grid
@@ -89,6 +107,7 @@ type CssClass
     | EmptyCell
     | MossyCell
     | TreeCell
+    | FireCell
 
 
 styles : Css.Stylesheet
@@ -110,6 +129,9 @@ styles =
             [ backgroundColor Colors.green ]
         , Css.class TreeCell
             [ backgroundColor Colors.olive
+            ]
+        , Css.class FireCell
+            [ backgroundColor Colors.red
             ]
         ]
 
