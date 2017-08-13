@@ -86,6 +86,52 @@ spec =
                                 , [ FullOfMoss, FullOfMoss, Empty ]
                                 ]
                             )
+            , test "applies if x neighbors match" <|
+                \() ->
+                    gridFromLists
+                        [ [ Empty, Empty, FullOfMoss ]
+                        , [ Empty, FullOfTrees, Empty ]
+                        , [ FullOfMoss, FullOfMoss, Empty ]
+                        ]
+                        |> applyRules seed
+                            [ IfCellIs FullOfTrees
+                                (IfXNeighborsAre
+                                    3
+                                    FullOfMoss
+                                    (ChangeToB FullOfMoss)
+                                )
+                            ]
+                        |> Tuple.first
+                        |> Expect.equal
+                            (gridFromLists
+                                [ [ Empty, Empty, FullOfMoss ]
+                                , [ Empty, FullOfMoss, Empty ]
+                                , [ FullOfMoss, FullOfMoss, Empty ]
+                                ]
+                            )
+            , test "applies if > x neighbors match" <|
+                \() ->
+                    gridFromLists
+                        [ [ FullOfMoss, Empty, FullOfMoss ]
+                        , [ Empty, FullOfTrees, Empty ]
+                        , [ FullOfMoss, FullOfMoss, Empty ]
+                        ]
+                        |> applyRules seed
+                            [ IfCellIs FullOfTrees
+                                (IfXNeighborsAre
+                                    3
+                                    FullOfMoss
+                                    (ChangeToB FullOfMoss)
+                                )
+                            ]
+                        |> Tuple.first
+                        |> Expect.equal
+                            (gridFromLists
+                                [ [ FullOfMoss, Empty, FullOfMoss ]
+                                , [ Empty, FullOfMoss, Empty ]
+                                , [ FullOfMoss, FullOfMoss, Empty ]
+                                ]
+                            )
             ]
         , describe "Sequences of rules"
             [ test "Once a rule has been applied to a cell, stop changing it" <|

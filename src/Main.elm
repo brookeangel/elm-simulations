@@ -30,9 +30,9 @@ init : ( Model, Cmd Msg )
 init =
     { grid = initGrid
     , rules =
-        [ IfCellIs Empty (Probability 0.05 (ChangeToB FullOfMoss))
-        , IfCellIs FullOfMoss (Probability 0.5 (ChangeToB FullOfTrees))
-        , IfCellIs FullOfTrees (ChangeToB Empty)
+        [ IfCellIs Empty (Probability 0.01 (ChangeToB FullOfMoss))
+        , IfXNeighborsAre 3 FullOfMoss (ChangeToB FullOfTrees)
+        , IfCellIs FullOfTrees (Probability 0.05 (ChangeToB Empty))
         ]
     , seed = Random.initialSeed 2810 -- TODO
     }
