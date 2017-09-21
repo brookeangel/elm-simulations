@@ -6,6 +6,7 @@ import Css.Colors as Colors
 import Css.Namespace exposing (namespace)
 import Html exposing (..)
 import Html.CssHelpers
+import Html.Events exposing (onClick)
 import Model exposing (..)
 import Types exposing (..)
 import Update exposing (..)
@@ -15,12 +16,37 @@ view : Model -> Html Msg
 view model =
     div []
         [ attachElmCssStyles
-        , div [ class [ Grid ] ]
-            (model.grid
-                |> Array.toList
-                |> List.indexedMap viewRow
-            )
+        , viewGrid model
+        , viewRules model
         ]
+
+
+viewRules : Model -> Html Msg
+viewRules model =
+    let
+        rules =
+            List.map
+                (\rule ->
+                    li []
+                        [ Html.text (toString rule)
+                        , button [ onClick (RemoveRule rule) ] [ Html.text "Remove Rule" ]
+                        ]
+                )
+                model.rules
+    in
+    div []
+        [ Html.text "Rules"
+        , ul [] rules
+        ]
+
+
+viewGrid : Model -> Html Msg
+viewGrid model =
+    div [ class [ Grid ] ]
+        (model.grid
+            |> Array.toList
+            |> List.indexedMap viewRow
+        )
 
 
 viewRow : Int -> Array Cell -> Html Msg

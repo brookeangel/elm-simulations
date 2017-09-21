@@ -2,7 +2,7 @@
 
 TODO:
 
-- [ ] Move view to own file
-- [ ] Show rules on screen
-- [ ] Remove a rule
+- [x] Move view to own file
+- [x] Show rules on screen
+- [x] Remove a rule
 - [ ] Allow user to add a "Change to B" rule

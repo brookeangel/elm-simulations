@@ -1,5 +1,6 @@
 module Update exposing (Msg(..), update)
 
+import List.Extra
 import Model exposing (..)
 import Random exposing (Seed)
 import Rocket exposing (..)
@@ -9,6 +10,7 @@ import Rules exposing (..)
 type Msg
     = NextFrame
     | SetSeed Seed
+    | RemoveRule Rule
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -23,3 +25,6 @@ update msg model =
 
         SetSeed seed ->
             { model | seed = seed } => Cmd.none
+
+        RemoveRule rule ->
+            { model | rules = List.Extra.remove rule model.rules } => Cmd.none
