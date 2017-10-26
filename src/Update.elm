@@ -5,12 +5,15 @@ import Model exposing (..)
 import Random exposing (Seed)
 import Rocket exposing (..)
 import Rules exposing (..)
+import Types exposing (CellState)
 
 
 type Msg
     = NextFrame
     | SetSeed Seed
     | RemoveRule Rule
+    | ChangeCellState CellState
+    | AddChangeToBRule
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -28,3 +31,9 @@ update msg model =
 
         RemoveRule rule ->
             { model | rules = List.Extra.remove rule model.rules } => Cmd.none
+
+        ChangeCellState cellState ->
+            { model | selectedCellState = cellState } => Cmd.none
+
+        AddChangeToBRule ->
+            { model | rules = model.rules ++ [ ChangeToB model.selectedCellState ] } => Cmd.none

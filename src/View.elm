@@ -4,9 +4,12 @@ import Array exposing (Array)
 import Css exposing (..)
 import Css.Colors as Colors
 import Css.Namespace exposing (namespace)
+import Dict
 import Html exposing (..)
+import Html.Attributes
 import Html.CssHelpers
-import Html.Events exposing (onClick)
+import Html.Events exposing (..)
+import Json.Decode exposing (andThen, decodeValue)
 import Model exposing (..)
 import Types exposing (..)
 import Update exposing (..)
@@ -18,6 +21,7 @@ view model =
         [ attachElmCssStyles
         , viewGrid model
         , viewRules model
+        , viewAddRule model
         ]
 
 
@@ -35,8 +39,43 @@ viewRules model =
                 model.rules
     in
     div []
-        [ Html.text "Rules"
+        [ h2 [] [ Html.text "Rules" ]
         , ul [] rules
+        ]
+
+
+viewAddRule : Model -> Html Msg
+viewAddRule model =
+    let
+        typeOptions =
+            List.map
+                (\cellState ->
+                    option
+                        [ Html.Attributes.selected (model.selectedCellState == cellState)
+                        , onClick cellState
+                        ]
+                        [ Html.text (toString cellState)
+                        ]
+                )
+                allCellStates
+
+        valueLookup =
+            allCellStates
+                |> List.map (\x -> ( toString x, x ))
+                |> Dict.fromList
+
+        decodeValue string =
+            Dict.get string valueLookup
+                |> Maybe.map Json.Decode.succeed
+                |> Maybe.withDefault (Json.Decode.fail "Could not decode")
+
+        onSelectHandler =
+            on "change" (targetValue |> andThen decodeValue)
+    in
+    div []
+        [ h2 [] [ Html.text "Add ChangeToB rule" ]
+        , Html.map ChangeCellState (select [ onSelectHandler ] typeOptions)
+        , button [ onClick AddChangeToBRule ] [ Html.text "Add" ]
         ]
 
 

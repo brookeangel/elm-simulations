@@ -45,6 +45,7 @@ init =
         , IfCellIs OnFire (ChangeToB Empty)
         ]
     , seed = Random.initialSeed 2810 -- TODO
+    , selectedCellState = Empty
     }
         => Cmd.none
 

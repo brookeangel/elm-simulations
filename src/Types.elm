@@ -3,6 +3,7 @@ module Types
         ( Cell
         , CellState(..)
         , Grid
+        , allCellStates
         , defaultSize
         , initGrid
         )
@@ -42,3 +43,12 @@ type CellState
     | FullOfMoss
     | FullOfTrees
     | OnFire
+
+
+allCellStates : List CellState
+allCellStates =
+    [ Empty
+    , FullOfMoss
+    , FullOfTrees
+    , OnFire
+    ]
